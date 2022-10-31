@@ -67,10 +67,6 @@ public class StageSystem : MonoBehaviour
         private Button _nextButton;//ネクストのボタン
         [SerializeField]
         private GameObject _rezultUi;//リザルトのゲームオブジェクト
-        [SerializeField]
-        private Text _minStepsText;
-        [SerializeField]
-        private Image _crownImage;
     #endregion
 
     #endregion
@@ -484,25 +480,6 @@ public class StageSystem : MonoBehaviour
             _IsClear = true;
             //ゲームクリア表示
             _rezultUi.gameObject.SetActive(true);
-            _minStepCount = int.Parse(_minStepCount.ToString());
-            int difference = 0;
-            difference = _stepCount - _minStepCount;
-            Debug.Log(difference);
-            //王冠を金色にする
-            if (_minStepCount <= difference)
-            {
-                _crownImage.color = new Color(255, 215, 0, 255);
-                //王冠を銀色にする
-                if (_minStepCount +7 <= difference)
-                {
-                    _crownImage.color = new Color(192, 192, 192, 255);
-                    //王冠を茶色にする
-                    if (_minStepCount + 12 <= difference)
-                    {
-                        _crownImage.color = new Color(115, 78, 48, 255);
-                    }
-                }
-            }
         }
     }
 
