@@ -58,7 +58,6 @@ public class StageSystem : MonoBehaviour
         #region UI用変数
         public Text _stepCountText;//歩数(数字)のテキスト
         private int _stepCount = 0;//歩数のカウント
-        private int _minStepCount = 0;
         public Text _stepText;//歩数のテキスト
         private float duration = 2.0F;//色変更の間隔
         [SerializeField]
@@ -67,10 +66,6 @@ public class StageSystem : MonoBehaviour
         private Button _nextButton;//ネクストのボタン
         [SerializeField]
         private GameObject _rezultUi;//リザルトのゲームオブジェクト
-        [SerializeField]
-        private Text _minStepsText;
-        [SerializeField]
-        private Image _crownImage;
     #endregion
 
     #endregion
@@ -484,25 +479,6 @@ public class StageSystem : MonoBehaviour
             _IsClear = true;
             //ゲームクリア表示
             _rezultUi.gameObject.SetActive(true);
-            _minStepCount = int.Parse(_minStepCount.ToString());
-            int difference = 0;
-            difference = _stepCount - _minStepCount;
-            Debug.Log(difference);
-            //王冠を金色にする
-            if (_minStepCount <= difference)
-            {
-                _crownImage.color = new Color(255, 215, 0, 255);
-                //王冠を銀色にする
-                if (_minStepCount +7 <= difference)
-                {
-                    _crownImage.color = new Color(192, 192, 192, 255);
-                    //王冠を茶色にする
-                    if (_minStepCount + 12 <= difference)
-                    {
-                        _crownImage.color = new Color(115, 78, 48, 255);
-                    }
-                }
-            }
         }
     }
 
