@@ -55,10 +55,10 @@ public class StageSystem : MonoBehaviour
         private bool _IsClear = false;//ゲームをクリアした場合true
         private int _sceneIndex;
     #endregion
+
         #region UI用変数
         public Text _stepCountText;//歩数(数字)のテキスト
         private int _stepCount = 0;//歩数のカウント
-        private int _minStepCount = 0;
         public Text _stepText;//歩数のテキスト
         private float duration = 2.0F;//色変更の間隔
         [SerializeField]
@@ -115,10 +115,24 @@ public class StageSystem : MonoBehaviour
             // プレイヤーが左に移動できるか検証
             TryMovePlayer(DirectionType.LEFT);
         }
+
+        //スペースが押された場合リスタート
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            //Build In Indexの値を取得し、格納する
             _sceneIndex = SceneManager.GetActiveScene().buildIndex;
+            //格納した値のシーンをロードする
             SceneManager.LoadScene(_sceneIndex);
+        }
+
+        _sceneIndex = SceneManager.GetActiveScene().buildIndex;
+        //裏ステージ
+        if(_sceneIndex == 0)
+        {
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                SceneManager.LoadScene(_sceneIndex + 6);
+            }
         }
 
         //durationの時間ごとに色が変わる
@@ -183,10 +197,10 @@ public class StageSystem : MonoBehaviour
                 var name = "tile" + y + "_" + x;
 
                 //タイルのゲームオブジェクトを作成
-                var tile = new GameObject(name);
+                GameObject tile = new GameObject(name);
 
                 //タイルにスプライトを描画する
-                var sr = tile.AddComponent<SpriteRenderer>();
+                SpriteRenderer sr = tile.AddComponent<SpriteRenderer>();
 
                 //タイルのスプライトを設定
                 sr.sprite = _groundSprite;
@@ -483,18 +497,22 @@ public class StageSystem : MonoBehaviour
         }
     }
 
+    //クリアしたときのリトライ
     public void OnRetry()
     {
         _sceneIndex = SceneManager.GetActiveScene().buildIndex;
         SceneManager.LoadScene(_sceneIndex);
     }
 
+    //クリアしたときに次のステージへ移動する
     public void OnNext()
     {
         _sceneIndex = SceneManager.GetActiveScene().buildIndex;
+        //格納した値を一つ増加して次のシーンに移動する
         SceneManager.LoadScene(_sceneIndex + 1);
     }
 
+    //ゲームエンド
     public void OnEnd()
     {
 #if UNITY_EDITOR
