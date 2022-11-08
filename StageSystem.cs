@@ -29,7 +29,7 @@ public class StageSystem : MonoBehaviour
     }
     #region 変数
         #region テキストファイルからの変換用
-        public TextAsset stageFile;//ステージ構造が記述されたテキストファイル
+        public TextAsset _stageFile;//ステージ構造が記述されたテキストファイル
         private int _rows;//行
         private int _columns;//列
         private TileType[,] _tileList;//タイル情報の管理用二次元配列
@@ -48,11 +48,11 @@ public class StageSystem : MonoBehaviour
         private GameObject _player;//プレイヤーのゲームオブジェクト
         private Vector2 _middleOffset;//中心位置
         private int _blockCount = 0;//ブロックの数
-        private Dictionary<GameObject, Vector2Int> gameObjectPosTable = new Dictionary<GameObject, Vector2Int>();//各一に存在するゲームオブジェクトを管理する配列
+        private Dictionary<GameObject, Vector2Int> _gameObjectPosTable = new Dictionary<GameObject, Vector2Int>();//各一に存在するゲームオブジェクトを管理する配列
     #endregion
 
         #region プレイヤー用変数
-        private bool _IsClear = false;//ゲームをクリアした場合true
+        private bool _isClear = false;//ゲームをクリアした場合true
         private int _sceneIndex;
     #endregion
 
@@ -60,7 +60,7 @@ public class StageSystem : MonoBehaviour
         public Text _stepCountText;//歩数(数字)のテキスト
         private int _stepCount = 0;//歩数のカウント
         public Text _stepText;//歩数のテキスト
-        private float duration = 2.0F;//色変更の間隔
+        private float _duration = 2.0F;//色変更の間隔
         [SerializeField]
         private Button _retryButton;//リザルトのボタン
         [SerializeField]
@@ -83,7 +83,7 @@ public class StageSystem : MonoBehaviour
     //プレイヤー移動処理
     private void Update()
     {
-        if (_IsClear)
+        if (_isClear)
         {
             return;
         }
@@ -136,8 +136,8 @@ public class StageSystem : MonoBehaviour
         }
 
         //durationの時間ごとに色が変わる
-        float phi = Time.time / duration * 2 * Mathf.PI;
-        float amplitude = Mathf.Cos(phi) * 0.5F + 0.5F;
+        float phi = Time.time / _duration * 2 * Mathf.PI;
+        float amplitude = (Mathf.Cos(phi) * 0.5F) + 0.5F;
         //色をRGBではなくHSVで指定
         _stepText.color = Color.HSVToRGB(amplitude, 1, 1);
 
@@ -151,11 +151,11 @@ public class StageSystem : MonoBehaviour
     private void LoadTileData()
     {
         //タイルの情報を一行ごとに分割
-        var lines = stageFile.text.Split(new[] { '\r', '\n' },
+        string[] lines = _stageFile.text.Split(new[] { '\r', '\n' },
             System.StringSplitOptions.RemoveEmptyEntries);
 
         //タイルの列数を計算
-        var nums = lines[0].Split(new[] { ',' });
+        string[] nums = lines[0].Split(new[] { ',' });
 
         //タイルの列数と行数を保持
         _rows = lines.Length;
@@ -167,7 +167,7 @@ public class StageSystem : MonoBehaviour
         for (int y = 0; y < _rows; y++)
         {
             //一文字ずつ取得
-            var st = lines[y];
+            string st = lines[y];
             nums = st.Split(new[] { ',' });
             for(int x = 0; x < _columns; x++)
             {
@@ -180,21 +180,21 @@ public class StageSystem : MonoBehaviour
     private void CreateStage()
     {
         //ステージの中心位置を計算
-        _middleOffset.x = _columns * _tileSize * 0.5f - _tileSize * 0.5f;
-        _middleOffset.y = _rows * _tileSize * 0.5f - _tileSize * 0.5f;
+        _middleOffset.x = (_columns * _tileSize * 0.5f) - (_tileSize * 0.5f);
+        _middleOffset.y = (_rows * _tileSize * 0.5f) - (_tileSize * 0.5f);
 
         for (int y = 0; y < _rows; y++)
         {
             for (int x = 0; x < _columns; x++)
             {
-                var val = _tileList[x, y];
+                TileType val = _tileList[x, y];
                 //何もない場所は無視
                 if (val == TileType.NONE)
                 {
                     continue;
                 }
                 //タイルの名前に行番号と列番号を付与
-                var name = "tile" + y + "_" + x;
+                string name = "tile" + y + "_" + x;
 
                 //タイルのゲームオブジェクトを作成
                 GameObject tile = new GameObject(name);
@@ -212,7 +212,7 @@ public class StageSystem : MonoBehaviour
                 if (val == TileType.TARGET)
                 {
                     // 目的地のゲームオブジェクトを作成
-                    var destination = new GameObject("destination");
+                    GameObject destination = new GameObject("destination");
 
                     // 目的地にスプライトを描画する機能を追加
                     sr = destination.AddComponent<SpriteRenderer>();
@@ -246,7 +246,7 @@ public class StageSystem : MonoBehaviour
                     _player.transform.position = GetDisplayPosition(x, y);
 
                     // プレイヤーを連想配列に追加
-                    gameObjectPosTable.Add(_player, new Vector2Int(x, y));
+                    _gameObjectPosTable.Add(_player, new Vector2Int(x, y));
                 }
 
                 // ブロックの場合
@@ -256,7 +256,7 @@ public class StageSystem : MonoBehaviour
                     _blockCount++;
 
                     // ブロックのゲームオブジェクトを作成
-                    var block = new GameObject("block" + _blockCount);
+                    GameObject block = new GameObject("block" + _blockCount);
 
                    // ブロックにスプライトを描画する機能を追加
                     sr = block.AddComponent<SpriteRenderer>();
@@ -271,7 +271,7 @@ public class StageSystem : MonoBehaviour
                     block.transform.position = GetDisplayPosition(x, y);
 
                     // ブロックを連想配列に追加
-                    gameObjectPosTable.Add(block, new Vector2Int(x, y));
+                    _gameObjectPosTable.Add(block, new Vector2Int(x, y));
                 }
             }
         }
@@ -280,8 +280,8 @@ public class StageSystem : MonoBehaviour
     //指定された行番号と列番号からスプライトの表示位置を計算して返す
     private Vector2 GetDisplayPosition(int x, int y)
     {
-        return new Vector2(x * _tileSize - _middleOffset.x,
-            y * -_tileSize + _middleOffset.y);
+        return new Vector2((x * _tileSize) - _middleOffset.x,
+            (y * -_tileSize) + _middleOffset.y);
     }
 
     //-------------------------------------------------------------------------------------
@@ -290,7 +290,7 @@ public class StageSystem : MonoBehaviour
     //指定された位置に存在するゲームオブジェクトを返す
     private GameObject GetGameObjectAtPosition(Vector2Int pos)
     {
-        foreach (var pair in gameObjectPosTable)
+        foreach (KeyValuePair<GameObject, Vector2Int> pair in _gameObjectPosTable)
         {
             // 指定された位置が見つかった場合
             if (pair.Value == pos)
@@ -315,7 +315,7 @@ public class StageSystem : MonoBehaviour
     //指定された位置のタイルがブロックならtrueを返す
     private bool IsBlock(Vector2Int pos)
     {
-        var cell = _tileList[pos.x, pos.y];
+        TileType cell = _tileList[pos.x, pos.y];
         return cell == TileType.BLOCK || cell == TileType.BLOCK_ON_TARGET;
     }
 
@@ -328,26 +328,29 @@ public class StageSystem : MonoBehaviour
     private void TryMovePlayer(DirectionType direction)
     {
         // プレイヤーの現在地を取得
-        var currentPlayerPos = gameObjectPosTable[_player];
+        Vector2Int currentPlayerPos = _gameObjectPosTable[_player];
 
         // プレイヤーの移動先の位置を計算
-        var nextPlayerPos = GetNextPositionAlong(currentPlayerPos, direction);
+        Vector2Int nextPlayerPos = GetNextPositionAlong(currentPlayerPos, direction);
 
         // プレイヤーの移動先がステージ内ではない場合は無視
-        if (!IsValidPosition(nextPlayerPos)) return;
+        if (!IsValidPosition(nextPlayerPos))
+        {
+            return;
+        } 
 
         // プレイヤーの移動先にブロックが存在する場合
         if (IsBlock(nextPlayerPos))
         {
             // ブロックの移動先の位置を計算
-            var nextBlockPos = GetNextPositionAlong(nextPlayerPos, direction);
+            Vector2Int nextBlockPos = GetNextPositionAlong(nextPlayerPos, direction);
 
             // ブロックの移動先がステージ内の場合かつ
             // ブロックの移動先にブロックが存在しない場合
             if (IsValidPosition(nextBlockPos) && !IsBlock(nextBlockPos))
             {
                 // 移動するブロックを取得
-                var block = GetGameObjectAtPosition(nextPlayerPos);
+                GameObject block = GetGameObjectAtPosition(nextPlayerPos);
 
                 // プレイヤーの移動先のタイルの情報を更新
                 UpdateGameObjectPosition(nextPlayerPos);
@@ -356,7 +359,7 @@ public class StageSystem : MonoBehaviour
                 block.transform.position = GetDisplayPosition(nextBlockPos.x, nextBlockPos.y);
 
                 // ブロックの位置を更新
-                gameObjectPosTable[block] = nextBlockPos;
+                _gameObjectPosTable[block] = nextBlockPos;
 
                 // ブロックの移動先の番号を更新
                 if (_tileList[nextBlockPos.x, nextBlockPos.y] == TileType.GROUND)
@@ -382,7 +385,7 @@ public class StageSystem : MonoBehaviour
                 _stepCountText.text = _stepCount.ToString();
 
                 // プレイヤーの位置を更新
-                gameObjectPosTable[_player] = nextPlayerPos;
+                _gameObjectPosTable[_player] = nextPlayerPos;
 
                 // プレイヤーの移動先の番号を更新
                 if (_tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.GROUND)
@@ -407,7 +410,7 @@ public class StageSystem : MonoBehaviour
             _player.transform.position = GetDisplayPosition(nextPlayerPos.x, nextPlayerPos.y);
 
             // プレイヤーの位置を更新
-            gameObjectPosTable[_player] = nextPlayerPos;
+            _gameObjectPosTable[_player] = nextPlayerPos;
 
             // プレイヤーの移動先の番号を更新
             if (_tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.GROUND)
@@ -455,7 +458,7 @@ public class StageSystem : MonoBehaviour
     private void UpdateGameObjectPosition(Vector2Int pos)
     {
         // 指定された位置のタイルの番号を取得
-        var cell = _tileList[pos.x, pos.y];
+        TileType cell = _tileList[pos.x, pos.y];
 
         // プレイヤーもしくはブロックの場合
         if (cell == TileType.PLAYER || cell == TileType.BLOCK)
@@ -491,7 +494,7 @@ public class StageSystem : MonoBehaviour
         if (blockOnTargetCount == _blockCount)
         {
             // ゲームクリア
-            _IsClear = true;
+            _isClear = true;
             //ゲームクリア表示
             _rezultUi.gameObject.SetActive(true);
         }
