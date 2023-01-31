@@ -1,10 +1,13 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+/*倉庫番根幹スクリプト
+ * 倉庫番のプロジェクトをこのスクリプトで管理しているため、
+ * 変更が容易という利点がある。
+ */
 public class StageSystem : MonoBehaviour
 {
     //タイルの種類
@@ -27,52 +30,48 @@ public class StageSystem : MonoBehaviour
         RIGHT,//右
         LEFT,//左
     }
-    #region 変数
-        #region テキストファイルからの変換用
-        public TextAsset _stageFile;//ステージ構造が記述されたテキストファイル
-        private int _rows;//行
-        private int _columns;//列
-        private TileType[,] _tileList;//タイル情報の管理用二次元配列
-        #endregion
-
-        #region マップ用変数
-        public float _tileSize = default;//タイルのサイズ
-        [SerializeField]
-        private Sprite _groundSprite;//地面のスプライト
-        [SerializeField]
-        private Sprite _targetSprite;//目的地のスプライト
-        [SerializeField]
-        private Sprite _playerSprite;//プレイヤーのスプライト
-        [SerializeField]
-        private Sprite _blockSprite;//ブロックのスプライト
-        private GameObject _player;//プレイヤーのゲームオブジェクト
-        private Vector2 _middleOffset;//中心位置
-        private int _blockCount = 0;//ブロックの数
-        private Dictionary<GameObject, Vector2Int> _gameObjectPosTable = new Dictionary<GameObject, Vector2Int>();//各一に存在するゲームオブジェクトを管理する配列
+    #region フィールド変数
+    #region テキストファイルからの変換用
+    //ステージ構造が記述されたテキストファイル
+    public TextAsset _stageFile;
+    private int _rows = default;//行
+    private int _columns = default;//列
+    //タイル情報の管理用二次元配列
+    private TileType[,] _tileList = default;
     #endregion
 
-        #region プレイヤー用変数
-        private bool _isClear = false;//ゲームをクリアした場合true
-        private int _sceneIndex;
+    #region マップ用変数
+    public float _tileSize = default;//タイルのサイズ
+    [SerializeField]
+    private Sprite _groundSprite = default;//地面のスプライト
+    [SerializeField]
+    private Sprite _targetSprite = default;//目的地のスプライト
+    [SerializeField]
+    private Sprite _playerSprite = default;//プレイヤーのスプライト
+    [SerializeField]
+    private Sprite _blockSprite = default;//ブロックのスプライト
+    private GameObject _player = default;//プレイヤーのゲームオブジェクト
+    private Vector2 _middleOffset = default;//中心位置
+    private int _blockCount = 0;//ブロックの数
+    private Dictionary<GameObject, Vector2Int> _gameObjectPosTable = new Dictionary<GameObject, Vector2Int>();//各一に存在するゲームオブジェクトを管理する配列
     #endregion
 
-        #region UI用変数
-        public Text _stepCountText;//歩数(数字)のテキスト
-        private int _stepCount = 0;//歩数のカウント
-        public Text _stepText;//歩数のテキスト
-        private float _duration = 2.0F;//色変更の間隔
-        [SerializeField]
-        private Button _retryButton;//リザルトのボタン
-        [SerializeField]
-        private Button _nextButton;//ネクストのボタン
-        [SerializeField]
-        private GameObject _rezultUi;//リザルトのゲームオブジェクト
+    #region UI用変数
+    private bool _isClear = false;//ゲームをクリアした場合true
+    private int _sceneIndex = default;//BuildInedxからの値を格納するための変数
+    public Text _stepCountText;//歩数(数字)のテキスト
+    private int _stepCount = 0;//歩数のカウント
+    public Text _stepText;//歩数のテキスト
+    private float _duration = 2.0F;//色変更の間隔
+    [SerializeField]
+    private GameObject _rezultUi = default;//リザルトのゲームオブジェクト
     #endregion
 
     #endregion
 
     private void Start()
     {
+        //クリア画面の非表示
         _rezultUi.gameObject.SetActive(false);
         //タイルの情報を読み込む
         LoadTileData();
@@ -83,6 +82,7 @@ public class StageSystem : MonoBehaviour
     //プレイヤー移動処理
     private void Update()
     {
+        //すべてのブロックが目的地に乗ったら処理を中断し、CheckCompletionにフラグ判定を返す
         if (_isClear)
         {
             return;
@@ -125,12 +125,15 @@ public class StageSystem : MonoBehaviour
             SceneManager.LoadScene(_sceneIndex);
         }
 
+        //Build In Indexの値を取得し、格納する
         _sceneIndex = SceneManager.GetActiveScene().buildIndex;
         //裏ステージ
-        if(_sceneIndex == 0)
+        if (_sceneIndex == 0)
         {
+            //エンターキーが押されたら場合(シーン名"Tuto")
             if (Input.GetKeyDown(KeyCode.Return))
             {
+                //格納した値のシーンをロードする
                 SceneManager.LoadScene(_sceneIndex + 6);
             }
         }
@@ -147,7 +150,9 @@ public class StageSystem : MonoBehaviour
     //-------------------------------------------------------------------------------------
     //この下タイル情報の書き込み＆読み込み
 
-    //タイルの情報を読み込む
+    /// <summary>
+    /// タイルの情報を読み込む
+    /// </summary>
     private void LoadTileData()
     {
         //タイルの情報を一行ごとに分割
@@ -168,8 +173,9 @@ public class StageSystem : MonoBehaviour
         {
             //一文字ずつ取得
             string st = lines[y];
+            //タイルの列数を","で区切り、配列に格納する
             nums = st.Split(new[] { ',' });
-            for(int x = 0; x < _columns; x++)
+            for (int x = 0; x < _columns; x++)
             {
                 //読み込んだ文字を数値に変換して保持
                 _tileList[x, y] = (TileType)int.Parse(nums[x]);
@@ -177,6 +183,9 @@ public class StageSystem : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// ステージの生成
+    /// </summary>
     private void CreateStage()
     {
         //ステージの中心位置を計算
@@ -258,7 +267,7 @@ public class StageSystem : MonoBehaviour
                     // ブロックのゲームオブジェクトを作成
                     GameObject block = new GameObject("block" + _blockCount);
 
-                   // ブロックにスプライトを描画する機能を追加
+                    // ブロックにスプライトを描画する機能を追加
                     sr = block.AddComponent<SpriteRenderer>();
 
                     // ブロックのスプライトを設定
@@ -305,7 +314,10 @@ public class StageSystem : MonoBehaviour
     //指定された位置ステージ内ならtrueを返す
     private bool IsValidPosition(Vector2Int pos)
     {
-        if (0 <= pos.x && pos.x < _columns && 0 <= pos.y && pos.y < _rows)
+        if (0 <= pos.x &&
+            pos.x < _columns &&
+            0 <= pos.y &&
+            pos.y < _rows)
         {
             return _tileList[pos.x, pos.y] != TileType.NONE;
         }
@@ -337,7 +349,7 @@ public class StageSystem : MonoBehaviour
         if (!IsValidPosition(nextPlayerPos))
         {
             return;
-        } 
+        }
 
         // プレイヤーの移動先にブロックが存在する場合
         if (IsBlock(nextPlayerPos))
@@ -500,16 +512,20 @@ public class StageSystem : MonoBehaviour
         }
     }
 
+    #region クリア処理
     //クリアしたときのリトライ
     public void OnRetry()
     {
+        //Build In Indexの値を取得し、格納する
         _sceneIndex = SceneManager.GetActiveScene().buildIndex;
+        //格納した値のシーンをロードする
         SceneManager.LoadScene(_sceneIndex);
     }
 
     //クリアしたときに次のステージへ移動する
     public void OnNext()
     {
+        //Build In Indexの値を取得し、格納する
         _sceneIndex = SceneManager.GetActiveScene().buildIndex;
         //格納した値を一つ増加して次のシーンに移動する
         SceneManager.LoadScene(_sceneIndex + 1);
@@ -521,7 +537,8 @@ public class StageSystem : MonoBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;//ゲームプレイ終了
 #else
-    Application.Quit();//ゲームプレイ終了
+        Application.Quit();//ゲームプレイ終了
 #endif
     }
+    #endregion
 }
